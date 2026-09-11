@@ -1,8 +1,12 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "api/scan.js": {
-      "maxDuration": 120
-    }
-  }
+  "version": 2,
+  "builds": [
+    { "src": "public/**", "use": "@vercel/static" },
+    { "src": "api/scan.js", "use": "@vercel/node", "config": { "maxDuration": 120 } }
+  ],
+  "routes": [
+    { "src": "/api/scan", "dest": "/api/scan.js" },
+    { "src": "/$", "dest": "/public/index.html" },
+    { "src": "/(.*)", "dest": "/public/$1" }
+  ]
 }
