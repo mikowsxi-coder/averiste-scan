@@ -29,27 +29,29 @@ ownership box, hit **Scan my app**.
 The scan works fully without AI. To also get a written report, set:
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-export AVERISTE_MODEL=<a current Claude model id>
+export GROQ_API_KEY=gsk_...
+export AVERISTE_MODEL=openai/gpt-oss-120b
 npm start
 ```
 
+Uses [Groq](https://console.groq.com)'s free-tier, OpenAI-compatible chat
+completions API (no card required; ~30 req/min, ~1,000 req/day as of writing).
 The report layer runs the findings JSON through `prompts/report-engine.md` at
 **temperature 0.1**. If the keys are absent, the app renders the deterministic
 findings on its own.
 
 ## Deploy (Vercel)
 
-The app is zero-config on Vercel: static files at the repo root, `api/scan.js`
-as the serverless function. Set `ANTHROPIC_API_KEY` and `AVERISTE_MODEL` as
-project environment variables in the Vercel dashboard to enable the AI report
-in production — the scan works without them either way.
+The app deploys via explicit `builds`/`routes` in `vercel.json`: static files
+in `public/`, `api/scan.js` as the serverless function. Set `GROQ_API_KEY` and
+`AVERISTE_MODEL` as project environment variables in the Vercel dashboard to
+enable the AI report in production — the scan works without them either way.
 
 ```bash
 vercel --prod
 ```
 
-`vercel.json` sets `maxDuration: 60` on `api/scan.js` since a full scan can
+`vercel.json` sets `maxDuration: 120` on `api/scan.js` since a full scan can
 take 20-40s; Vercel's default (with Fluid Compute) covers this comfortably
 on both Hobby and Pro.
 
