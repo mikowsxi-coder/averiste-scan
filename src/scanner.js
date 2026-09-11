@@ -1,6 +1,6 @@
 // scanner.js — orchestrates the read-only surface checks and returns findings.
 import {
-  fetchWithTimeout, scanSecrets, scanSupabaseTables, scanHeaders,
+  safeFetch, scanSecrets, scanSupabaseTables, scanHeaders,
   scanExposedFiles, scanAuthConfig,
 } from './checks.js';
 
@@ -13,7 +13,12 @@ function normalizeUrl(input) {
   return { href: parsed.href, origin: parsed.origin };
 }
 
-// Block scanning obviously non-public / internal hosts.
+// Fast, cheap rejection for obviously internal hostnames, so a bad target
+// fails immediately with a clear message. This is a pre-check only — the
+// real enforcement is in net-safety.js's safeFetch, which resolves DNS and
+// validates the actual IP on every request, including redirects, so a
+// hostname that merely *looks* public but resolves internally is still
+// blocked.
 function isPublicHost(origin) {
   const host = new URL(origin).hostname;
   if (host === 'localhost' || host.endsWith('.local')) return false;
@@ -45,7 +50,7 @@ export async function runScan(rawUrl) {
   let html = '';
   let headers = new Headers();
   try {
-    const res = await fetchWithTimeout(href, {}, 10000);
+    const res = await safeFetch(href, {}, 10000);
     headers = res.headers;
     html = await res.text();
     meta.checks.push('homepage');

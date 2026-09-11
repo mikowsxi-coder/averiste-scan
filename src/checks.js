@@ -1,22 +1,6 @@
 // checks.js — individual surface-level checks. All are READ-ONLY (GET/HEAD).
 // Nothing here writes, updates, or deletes data on the target.
-
-const UA = 'AveristeScan/0.1 (+https://averiste.example/scanner; security self-audit)';
-
-async function fetchWithTimeout(url, opts = {}, ms = 8000) {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), ms);
-  try {
-    return await fetch(url, {
-      ...opts,
-      redirect: 'follow',
-      signal: ctrl.signal,
-      headers: { 'User-Agent': UA, ...(opts.headers || {}) },
-    });
-  } finally {
-    clearTimeout(t);
-  }
-}
+import { safeFetch as fetchWithTimeout } from './net-safety.js';
 
 // ---------------------------------------------------------------------------
 // Secret patterns. Each hit becomes a finding. Severity reflects blast radius.
@@ -321,4 +305,4 @@ function redact(s) {
 function shortUrl(u) { try { const x = new URL(u); return x.pathname; } catch { return u; } }
 function hash(s) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h).toString(36); }
 
-export { fetchWithTimeout };
+export { fetchWithTimeout as safeFetch };

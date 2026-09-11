@@ -11,13 +11,12 @@ intentionally *not* a penetration test.
 
 ---
 
-## Run it
+## Run it locally
 
 Requires Node 18+.
 
 ```bash
 cd averiste-scan
-npm install
 npm start
 # open http://localhost:3000
 ```
@@ -39,30 +38,51 @@ The report layer runs the findings JSON through `prompts/report-engine.md` at
 **temperature 0.1**. If the keys are absent, the app renders the deterministic
 findings on its own.
 
+## Deploy (Vercel)
+
+The app is zero-config on Vercel: static files at the repo root, `api/scan.js`
+as the serverless function. Set `ANTHROPIC_API_KEY` and `AVERISTE_MODEL` as
+project environment variables in the Vercel dashboard to enable the AI report
+in production — the scan works without them either way.
+
+```bash
+vercel --prod
+```
+
+`vercel.json` sets `maxDuration: 60` on `api/scan.js` since a full scan can
+take 20-40s; Vercel's default (with Fluid Compute) covers this comfortably
+on both Hobby and Pro.
+
 ---
 
 ## Architecture
 
 ```
- Browser (public/)                 Node server (server.js)
+ Browser (index.html/app.js)              api/scan.js (Vercel) or server.js (local)
  ┌───────────────┐   POST /api/scan   ┌──────────────────────────┐
- │ scan form     │ ─────────────────▶ │ runScan(url)             │
- │ results cards │                    │  ├─ fetch homepage        │
- └───────────────┘ ◀───────────────── │  ├─ scanHeaders           │
-        JSON findings + report         │  ├─ scanSecrets (html+js) │
-                                        │  ├─ scanSupabaseTables    │  read-only
-                                        │  ├─ scanExposedFiles      │  GET / HEAD
-                                        │  └─ scanAuthConfig        │
-                                        │ generateReport() [AI opt] │
+ │ scan form     │ ─────────────────▶ │ handleScanRequest()      │
+ │ results cards │                    │  └─ runScan(url)          │
+ └───────────────┘ ◀───────────────── │      ├─ fetch homepage    │
+        JSON findings + report         │      ├─ scanHeaders       │
+                                        │      ├─ scanSecrets       │  read-only,
+                                        │      ├─ scanSupabaseTables│  SSRF-safe
+                                        │      ├─ scanExposedFiles  │  (net-safety.js)
+                                        │      └─ scanAuthConfig    │
+                                        │      generateReport() [AI]│
                                         └──────────────────────────┘
 ```
 
+- `src/net-safety.js` — SSRF-safe fetch: resolves DNS, rejects private/internal
+  IPs, pins the connection to the validated address, re-validates on redirects.
 - `src/checks.js` — every individual check. All GET/HEAD.
 - `src/scanner.js` — orchestrates checks, scores, sorts, de-dupes.
+- `src/handle-scan.js` — shared `/api/scan` request logic (rate limit, ownership
+  gate, calls scanner + AI report). Used by both entry points below.
 - `src/ai.js` — optional AI report (temp 0.1).
 - `prompts/report-engine.md` — the full report-engine system prompt.
-- `server.js` — Express, `/api/scan`, ownership gate, rate limit.
-- `public/` — the UI.
+- `api/scan.js` — Vercel serverless entry point.
+- `server.js` — plain-Node entry point for local dev, no Vercel CLI needed.
+- `index.html` / `app.js` / `styles.css` — the UI.
 
 ## Scoring
 
