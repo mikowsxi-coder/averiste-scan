@@ -145,4 +145,15 @@ function mergeDiscovered(into, from) {
   if (from.anonKey && !into.anonKey) into.anonKey = from.anonKey;
   if (from.serviceKey && !into.serviceKey) into.serviceKey = from.serviceKey;
 }
-function shortName(u) { try { return new URL(u).pathname.split('/').pop() || 'bundle.js'; } catch { return 'bundle.js'; } }
+// The scanned target fully controls its own <script src> paths, so this
+// label is attacker-influenced. It ends up unredacted in a finding's
+// evidence field (checks.js) and from there in the AI report prompt
+// (ai.js) — bound its length and strip anything that isn't a safe
+// filename character so it can't carry an injection payload or bloat
+// the prompt.
+function shortName(u) {
+  let name;
+  try { name = new URL(u).pathname.split('/').pop() || 'bundle.js'; }
+  catch { return 'bundle.js'; }
+  return name.slice(0, 60).replace(/[^\w.-]/g, '_') || 'bundle.js';
+}
