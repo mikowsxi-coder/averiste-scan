@@ -50,14 +50,28 @@ export async function runScan(rawUrl) {
   // 1. fetch homepage
   let html = '';
   let headers = new Headers();
+  let homepageRes;
   try {
-    const res = await safeFetch(href, {}, 10000);
-    headers = res.headers;
-    html = await res.text();
-    meta.checks.push('homepage');
+    homepageRes = await safeFetch(href, {}, 10000);
   } catch (e) {
     throw new Error(`Could not reach target: ${e.message}`);
   }
+  if (homepageRes.status < 200 || homepageRes.status >= 300) {
+    // A non-2xx homepage (most commonly a bot-protection challenge page,
+    // e.g. Cloudflare's "Just a moment...") means every check below would
+    // run against that error/challenge page instead of the real app,
+    // producing a plausible-looking but meaningless grade. Fail loudly
+    // instead of silently reporting a "clean" scan of the wrong page.
+    const blocked = homepageRes.headers.get('cf-mitigated') || /cloudflare/i.test(homepageRes.headers.get('server') || '');
+    throw new Error(
+      `Target returned HTTP ${homepageRes.status} instead of your app` +
+      (blocked ? ' — it looks like bot/anti-automation protection blocked this scan.' : '.') +
+      ' Could not run a meaningful scan against this response.'
+    );
+  }
+  headers = homepageRes.headers;
+  html = await homepageRes.text();
+  meta.checks.push('homepage');
 
   // 2. headers
   findings.push(...scanHeaders(headers));
