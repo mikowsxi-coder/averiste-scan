@@ -1,5 +1,9 @@
-// server.js — zero-dependency Node server for local dev: serves the UI and
-// /api/scan without needing the Vercel CLI. Production uses api/scan.js instead.
+// dev-server.js — zero-dependency Node server for local dev: serves the UI
+// and /api/scan without needing the Vercel CLI. Production uses api/scan.js
+// instead. Deliberately not named app.js/server.js/index.js at the repo
+// root — Vercel's zero-config Express detection claims those names as the
+// whole app's entrypoint, which broke the static+api/ deployment shape
+// this project actually uses.
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -7,6 +11,7 @@ import { dirname, join, extname, normalize } from 'node:path';
 import { handleScanRequest } from './src/handle-scan.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const PUBLIC = join(__dirname, 'public');
 const STATIC_FILES = new Set(['/index.html', '/app.js', '/styles.css']);
 
 const MIME = {
@@ -26,7 +31,7 @@ function send(res, code, body, type = 'application/json; charset=utf-8') {
 async function serveStatic(res, urlPath) {
   const clean = normalize(urlPath === '/' ? '/index.html' : urlPath);
   if (!STATIC_FILES.has(clean)) return send(res, 404, 'Not found', 'text/plain');
-  const file = join(__dirname, clean);
+  const file = join(PUBLIC, clean);
   try {
     const data = await readFile(file);
     send(res, 200, data, MIME[extname(file)] || 'application/octet-stream');

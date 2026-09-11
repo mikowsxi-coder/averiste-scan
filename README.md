@@ -58,7 +58,7 @@ on both Hobby and Pro.
 ## Architecture
 
 ```
- Browser (index.html/app.js)              api/scan.js (Vercel) or server.js (local)
+ Browser (public/index.html + app.js)     api/scan.js (Vercel) or dev-server.js (local)
  ┌───────────────┐   POST /api/scan   ┌──────────────────────────┐
  │ scan form     │ ─────────────────▶ │ handleScanRequest()      │
  │ results cards │                    │  └─ runScan(url)          │
@@ -81,8 +81,11 @@ on both Hobby and Pro.
 - `src/ai.js` — optional AI report (temp 0.1).
 - `prompts/report-engine.md` — the full report-engine system prompt.
 - `api/scan.js` — Vercel serverless entry point.
-- `server.js` — plain-Node entry point for local dev, no Vercel CLI needed.
-- `index.html` / `app.js` / `styles.css` — the UI.
+- `dev-server.js` — plain-Node entry point for local dev, no Vercel CLI needed.
+  Not named `app.js`/`server.js`/`index.js` at the repo root on purpose:
+  Vercel's zero-config Express detection claims those names as the whole
+  app's entrypoint, which conflicts with this project's static+`api/` shape.
+- `public/index.html` / `public/app.js` / `public/styles.css` — the UI.
 
 ## Scoring
 
