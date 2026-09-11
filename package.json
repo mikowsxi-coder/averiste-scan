@@ -1,0 +1,13 @@
+{
+  "name": "averiste-scan",
+  "version": "0.1.0",
+  "description": "Averiste Scan — surface-level security scanner for AI-built web apps",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

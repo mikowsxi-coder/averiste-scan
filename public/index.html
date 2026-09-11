@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Averiste Scan — Security check for AI-built apps</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <div class="brand">
+        <span class="brand-mark">◆</span>
+        <span class="brand-name">Averiste<span class="brand-sub">Scan</span></span>
+      </div>
+      <nav class="nav">
+        <a href="#how">How it works</a>
+        <a href="#scan">Run a scan</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <p class="eyebrow">Surface security scan · read-only</p>
+      <h1>Find the leaks in your AI-built app<br />before your users do.</h1>
+      <p class="lede">
+        Apps shipped with Lovable, Bolt, v0 and Cursor often expose secrets or
+        leave their database open by default. Averiste Scan checks for the most
+        common, most damaging mistakes in under a minute — without touching your
+        data.
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#scan">Scan my app</a>
+        <a class="btn btn-ghost" href="#how">See what it checks</a>
+      </div>
+      <p class="trust-line">Read-only checks · No account needed · You confirm ownership before scanning</p>
+    </div>
+  </section>
+
+  <section id="how" class="section">
+    <div class="wrap">
+      <h2 class="section-title">What it checks</h2>
+      <div class="grid">
+        <article class="card">
+          <div class="card-icon">01</div>
+          <h3>Exposed secrets</h3>
+          <p>Scans your live JavaScript for API keys, tokens and — worst of all — a Supabase <code>service_role</code> key shipped to the browser.</p>
+        </article>
+        <article class="card">
+          <div class="card-icon">02</div>
+          <h3>Open database tables</h3>
+          <p>Detects Supabase tables readable by the public key, which means row-level security is off. We read the row <em>count</em> only, never the data.</p>
+        </article>
+        <article class="card">
+          <div class="card-icon">03</div>
+          <h3>Exposed files</h3>
+          <p>Looks for <code>.env</code>, <code>.git</code> and production source maps left reachable on your deployed app.</p>
+        </article>
+        <article class="card">
+          <div class="card-icon">04</div>
+          <h3>Missing protections</h3>
+          <p>Checks for the security headers that defend against common browser-based attacks, and flags what's missing.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="scan" class="section section-alt">
+    <div class="wrap narrow">
+      <h2 class="section-title">Run a scan</h2>
+      <form id="scan-form" class="scan-form">
+        <label class="field">
+          <span class="field-label">Your app's URL</span>
+          <input id="url" name="url" type="text" inputmode="url"
+                 placeholder="https://my-app.example.com" autocomplete="off" required />
+        </label>
+
+        <label class="attest">
+          <input id="attest" type="checkbox" required />
+          <span>I own this application or am authorized to test it. I understand Averiste Scan performs read-only checks.</span>
+        </label>
+
+        <button id="scan-btn" class="btn btn-primary btn-full" type="submit">Scan my app</button>
+        <p class="form-note">Only public web apps can be scanned. Nothing is written, changed, or deleted.</p>
+      </form>
+
+      <div id="status" class="status" hidden></div>
+
+      <div id="results" class="results" hidden>
+        <div class="score-row">
+          <div class="score-badge" id="score-badge">
+            <span class="grade" id="grade">–</span>
+            <span class="grade-label">grade</span>
+          </div>
+          <div class="score-meta">
+            <div class="score-line" id="score-line"></div>
+            <div class="sev-pills" id="sev-pills"></div>
+          </div>
+        </div>
+
+        <div id="findings" class="findings"></div>
+
+        <details class="report-block" id="report-block" hidden>
+          <summary>Full written report</summary>
+          <div id="report" class="report-md"></div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="section">
+    <div class="wrap narrow">
+      <h2 class="section-title">FAQ</h2>
+      <div class="faq">
+        <div class="faq-item">
+          <h3>Is this safe to run on my app?</h3>
+          <p>Yes. Every check is read-only — GET and HEAD requests only. We never write, modify, or delete anything, and we never download your users' data. Table checks read the row count, not the rows.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Can I scan someone else's app?</h3>
+          <p>No. You must confirm you own or are authorized to test the target. Scanning apps you don't control may be illegal.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Is a passing scan a guarantee?</h3>
+          <p>No. This is a <em>surface</em> scan of the most common mistakes. It does not test business logic or multi-user access control. A clean result is a good sign, not a full audit.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <span>© <span id="year"></span> Averiste</span>
+      <span class="footer-note">Automated surface scan · not a penetration test</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
