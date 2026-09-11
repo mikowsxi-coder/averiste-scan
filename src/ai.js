@@ -38,8 +38,9 @@ export async function generateReport(result) {
     ],
   };
 
+  let res;
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -47,10 +48,29 @@ export async function generateReport(result) {
       },
       body: JSON.stringify(body),
     });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.choices?.[0]?.message?.content?.trim() || null;
-  } catch {
+  } catch (e) {
+    console.error('[ai] Groq request failed (network):', e.message);
     return null;
   }
+
+  const bodyText = await res.text();
+  if (!res.ok) {
+    // Surface the real reason in server logs — bad key (401), stale/renamed
+    // model (404), rate limit (429), etc. — instead of a silent null that's
+    // indistinguishable from "AI not configured".
+    console.error(`[ai] Groq HTTP ${res.status}:`, bodyText.slice(0, 300));
+    return null;
+  }
+
+  let data;
+  try {
+    data = JSON.parse(bodyText);
+  } catch {
+    console.error('[ai] Groq returned non-JSON body:', bodyText.slice(0, 300));
+    return null;
+  }
+
+  const text = data.choices?.[0]?.message?.content?.trim();
+  if (!text) console.error('[ai] Groq returned no message content:', JSON.stringify(data).slice(0, 300));
+  return text || null;
 }
