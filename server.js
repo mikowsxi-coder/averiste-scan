@@ -19,7 +19,8 @@ const MIME = {
 
 function send(res, code, body, type = 'application/json; charset=utf-8') {
   res.writeHead(code, { 'content-type': type });
-  res.end(typeof body === 'string' ? body : JSON.stringify(body));
+  if (typeof body === 'string' || Buffer.isBuffer(body)) return res.end(body);
+  res.end(JSON.stringify(body));
 }
 
 async function serveStatic(res, urlPath) {

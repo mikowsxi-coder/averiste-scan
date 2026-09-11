@@ -1,6 +1,6 @@
 // checks.js — individual surface-level checks. All are READ-ONLY (GET/HEAD).
 // Nothing here writes, updates, or deletes data on the target.
-import { safeFetch as fetchWithTimeout } from './net-safety.js';
+import { safeFetch as fetchWithTimeout, mapWithConcurrency } from './net-safety.js';
 
 // ---------------------------------------------------------------------------
 // Secret patterns. Each hit becomes a finding. Severity reflects blast radius.
@@ -215,7 +215,7 @@ const SENSITIVE_PATHS = [
 export async function scanExposedFiles(origin, jsUrls = []) {
   const findings = [];
 
-  for (const f of SENSITIVE_PATHS) {
+  await mapWithConcurrency(SENSITIVE_PATHS, 5, async (f) => {
     try {
       const res = await fetchWithTimeout(origin + f.path, {}, 6000);
       if (res.status === 200) {
@@ -235,10 +235,10 @@ export async function scanExposedFiles(origin, jsUrls = []) {
         }
       }
     } catch { /* ignore */ }
-  }
+  });
 
   // source maps next to JS bundles
-  for (const js of jsUrls.slice(0, 8)) {
+  await mapWithConcurrency(jsUrls.slice(0, 8), 4, async (js) => {
     try {
       const res = await fetchWithTimeout(js + '.map', {}, 6000);
       if (res.status === 200) {
@@ -258,7 +258,7 @@ export async function scanExposedFiles(origin, jsUrls = []) {
         }
       }
     } catch { /* ignore */ }
-  }
+  });
   return findings;
 }
 

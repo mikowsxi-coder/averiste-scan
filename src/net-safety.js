@@ -98,6 +98,20 @@ function wrapResponse(nodeRes, bodyBuffer) {
   };
 }
 
+// Runs `fn` over `items` with at most `limit` in flight at once. Used to
+// bound how many outbound requests a scan stage makes concurrently, so a
+// slow/large target can't push total scan time past the function timeout.
+export async function mapWithConcurrency(items, limit, fn) {
+  let i = 0;
+  async function worker() {
+    while (i < items.length) {
+      const idx = i++;
+      await fn(items[idx], idx);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+}
+
 // Drop-in-ish replacement for `fetch(url, opts)` with an added timeout and
 // redirect-hop budget. Only the subset of the Response API the scanner
 // actually uses (status/headers.get/text/json) is implemented.

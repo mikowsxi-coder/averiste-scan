@@ -3,6 +3,7 @@ import {
   safeFetch, scanSecrets, scanSupabaseTables, scanHeaders,
   scanExposedFiles, scanAuthConfig,
 } from './checks.js';
+import { mapWithConcurrency } from './net-safety.js';
 
 const SEV_ORDER = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
 
@@ -70,16 +71,16 @@ export async function runScan(rawUrl) {
   findings.push(...htmlSecrets.findings);
   mergeDiscovered(discovered, htmlSecrets.discovered);
 
-  for (const js of jsUrls.slice(0, 10)) {
+  await mapWithConcurrency(jsUrls.slice(0, 10), 4, async (js) => {
     try {
-      const res = await fetchWithTimeout(js, {}, 8000);
-      if (res.status !== 200) continue;
+      const res = await safeFetch(js, {}, 8000);
+      if (res.status !== 200) return;
       const body = await res.text();
       const s = scanSecrets(body, shortName(js));
       findings.push(...s.findings);
       mergeDiscovered(discovered, s.discovered);
     } catch { /* ignore individual bundle */ }
-  }
+  });
   meta.checks.push('secret-scan');
   meta.supabaseDetected = !!discovered.supabaseUrl;
 
