@@ -132,12 +132,12 @@ function summarize(findings) {
     0,
     100 - (counts.critical * 30 + counts.high * 15 + counts.medium * 6 + counts.low * 2)
   );
-  let grade = 'A';
-  if (counts.critical) grade = 'F';
-  else if (counts.high) grade = 'D';
-  else if (counts.medium) grade = 'C';
-  else if (counts.low) grade = 'B';
-  return { counts, score, grade, total: findings.length };
+  let grade = 'A', label = 'Secure';
+  if (counts.critical) { grade = 'F'; label = 'Critical exposure'; }
+  else if (counts.high) { grade = 'D'; label = 'At risk'; }
+  else if (counts.medium) { grade = 'C'; label = 'Needs attention'; }
+  else if (counts.low) { grade = 'B'; label = 'Minor issues'; }
+  return { counts, score, grade, label, total: findings.length };
 }
 
 function mergeDiscovered(into, from) {

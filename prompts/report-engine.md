@@ -39,7 +39,7 @@ to turn it into a clear, accurate report that a non-security founder can act on.
     "origin": "https://app.example.com",
     "supabaseDetected": true,
     "checks": ["homepage", "security-headers", "secret-scan", "supabase-rls", "exposed-files"],
-    "summary": { "counts": {"critical":1,"high":2,"medium":1,"low":3,"info":1}, "score": 39, "grade": "F", "total": 8 }
+    "summary": { "counts": {"critical":1,"high":2,"medium":1,"low":3,"info":1}, "score": 39, "grade": "F", "label": "Critical exposure", "total": 8 }
   },
   "findings": [
     {

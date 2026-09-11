@@ -53,7 +53,7 @@ function render(data) {
   badge.className = 'score-badge grade-' + s.grade;
 
   $('#score-line').textContent =
-    `Security score ${s.score}/100 · ${s.total} finding${s.total === 1 ? '' : 's'} across ${meta.checks.length} checks`;
+    `Security score ${s.score}/100 — ${s.label} · ${s.total} finding${s.total === 1 ? '' : 's'} across ${meta.checks.length} checks`;
 
   const pills = $('#sev-pills');
   pills.innerHTML = '';
